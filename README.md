@@ -1,2 +1,2 @@
 # vibehack
-hackathon
+Vibe coding hackathon
