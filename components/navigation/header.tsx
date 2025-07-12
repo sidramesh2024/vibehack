@@ -1,7 +1,8 @@
 
 "use client"
 
-import { useSession, signOut } from "next-auth/react"
+import { useAuth } from "@/contexts/auth-context"
+import { signOut } from "@/lib/firebase-auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { 
@@ -22,10 +23,10 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { UserRole } from "@prisma/client"
+import { UserRole } from "@/lib/firebase-types"
 
 export function Header() {
-  const { data: session, status } = useSession()
+  const { user, firebaseUser } = useAuth()
 
   const getInitials = (name?: string | null) => {
     if (!name) return "U"
@@ -43,10 +44,10 @@ export function Header() {
 
         {/* Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
-          {session ? (
+          {user ? (
             // Authenticated Navigation
             <>
-              {session.user.role === UserRole.ARTIST ? (
+              {user.role === UserRole.ARTIST ? (
                 <>
                   <Link href="/artist/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
                     Dashboard
@@ -97,13 +98,13 @@ export function Header() {
 
         {/* User Menu */}
         <div className="flex items-center space-x-4">
-          {session ? (
+          {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={session.user.image || ""} alt={session.user.name || ""} />
-                    <AvatarFallback>{getInitials(session.user.name)}</AvatarFallback>
+                    <AvatarImage src={firebaseUser?.photoURL || ""} alt={firebaseUser?.displayName || user?.email || ""} />
+                    <AvatarFallback>{getInitials(firebaseUser?.displayName || user?.email)}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>

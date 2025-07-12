@@ -1,36 +1,61 @@
 
-import { redirect } from "next/navigation"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { UserRole } from "@prisma/client"
+"use client"
+
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
+import { UserRole } from "@/lib/firebase-types"
 import { Header } from "@/components/navigation/header"
 import { AIGigRecommendations } from "@/components/artist/ai-gig-recommendations"
+import { Loader2 } from "lucide-react"
 
-export default async function ArtistRecommendationsPage() {
-  const session = await getServerSession(authOptions)
+export default function ArtistRecommendationsPage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
 
-  if (!session) {
-    redirect("/auth/login?callbackUrl=/artist/recommendations")
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.push("/auth/login?callbackUrl=/artist/recommendations")
+        return
+      }
+
+      if (user?.role !== UserRole.ARTIST) {
+        router.push("/dashboard")
+        return
+      }
+    }
+  }, [loading, user, user, router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
-  if (session.user.role !== UserRole.ARTIST) {
-    redirect("/dashboard")
+  if (!user || user?.role !== UserRole.ARTIST) {
+    return null
   }
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container mx-auto max-w-7xl px-4 py-8">
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold">AI-Powered Gig Recommendations</h1>
-            <p className="text-muted-foreground">
-              Discover gigs perfectly matched to your skills and portfolio
+      <main className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">AI Gig Recommendations</h1>
+            <p className="text-muted-foreground mt-2">
+              Discover gigs that match your skills and portfolio using AI-powered matching.
             </p>
           </div>
           <AIGigRecommendations />
         </div>
-      </div>
+      </main>
     </div>
   )
 }

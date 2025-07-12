@@ -1,8 +1,8 @@
 
 "use client"
 
-import { SessionProvider } from "next-auth/react"
 import { ThemeProvider } from "./theme-provider"
+import { AuthProvider } from "@/contexts/auth-context"
 import { PropsWithChildren, useEffect, useState } from "react"
 
 export function Providers({ children }: PropsWithChildren) {
@@ -17,7 +17,7 @@ export function Providers({ children }: PropsWithChildren) {
   }
 
   return (
-    <SessionProvider>
+    <AuthProvider>
       <ThemeProvider
         attribute="class"
         defaultTheme="light"
@@ -26,6 +26,6 @@ export function Providers({ children }: PropsWithChildren) {
       >
         {children}
       </ThemeProvider>
-    </SessionProvider>
+    </AuthProvider>
   )
 }

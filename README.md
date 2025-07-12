@@ -1,2 +1,1 @@
-# vibehack
-Vibe coding hackathon
+ 

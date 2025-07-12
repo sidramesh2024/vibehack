@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Loader2, Sparkles, TrendingUp, MapPin, Calendar, DollarSign } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { authenticatedPost } from "@/lib/firebase-api"
 
 interface Match {
   gigId: string
@@ -46,12 +47,7 @@ export function AIGigRecommendations() {
     setError(null)
     
     try {
-      const response = await fetch('/api/ai/match-gigs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
+      const response = await authenticatedPost('/api/ai/match-gigs')
 
       if (!response.ok) {
         throw new Error('Failed to fetch recommendations')

@@ -3,7 +3,7 @@
 
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { signIn } from "next-auth/react"
+import { signUp } from "@/lib/firebase-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Loader2, Mail, Lock, User, Palette, Users } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { UserRole } from "@prisma/client"
+import { UserRole } from "@/lib/firebase-types"
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false)
@@ -53,44 +53,20 @@ export function RegisterForm() {
     }
 
     try {
-      // Register user
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+      // Register user with Firebase Auth and create user document
+      await signUp(data.email, data.password, data.role, data.firstName, data.lastName)
+
+      toast({
+        title: "Welcome to Brooklyn Creative Hub!",
+        description: "Your account has been created successfully.",
       })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        setError(result.error || "Something went wrong")
-        return
-      }
-
-      // Auto sign in after successful registration
-      const signInResult = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      })
-
-      if (signInResult?.error) {
-        setError("Account created but sign in failed. Please try signing in manually.")
-      } else {
-        toast({
-          title: "Welcome to Brooklyn Creative Hub!",
-          description: "Your account has been created successfully.",
-        })
-        
-        // Redirect based on role
-        const redirectUrl = data.role === UserRole.ARTIST ? "/artist/dashboard" : "/client/dashboard"
-        router.push(redirectUrl)
-        router.refresh()
-      }
-    } catch (error) {
-      setError("Something went wrong. Please try again.")
+      
+      // Redirect based on role
+      const redirectUrl = data.role === UserRole.ARTIST ? "/artist/dashboard" : "/client/dashboard"
+      router.push(redirectUrl)
+      router.refresh()
+    } catch (error: any) {
+      setError(error.message || "Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)
     }

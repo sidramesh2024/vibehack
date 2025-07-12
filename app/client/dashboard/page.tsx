@@ -1,20 +1,44 @@
+"use client"
 
-import { redirect } from "next/navigation"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { UserRole } from "@prisma/client"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
+import { UserRole } from "@/lib/firebase-types"
 import { Header } from "@/components/navigation/header"
 import { ClientDashboard } from "@/components/client/client-dashboard"
+import { Loader2 } from "lucide-react"
 
-export default async function ClientDashboardPage() {
-  const session = await getServerSession(authOptions)
+export default function ClientDashboardPage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
 
-  if (!session) {
-    redirect("/auth/login?callbackUrl=/client/dashboard")
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.push("/auth/login?callbackUrl=/client/dashboard")
+        return
+      }
+
+      if (user?.role !== UserRole.CLIENT) {
+        router.push("/dashboard")
+        return
+      }
+    }
+  }, [loading, user, user, router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
-  if (session.user.role !== UserRole.CLIENT) {
-    redirect("/dashboard")
+  if (!user || user?.role !== UserRole.CLIENT) {
+    return null
   }
 
   return (

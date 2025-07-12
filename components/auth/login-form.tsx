@@ -2,7 +2,7 @@
 "use client"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
+import { signIn } from "@/lib/firebase-auth"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,27 +29,19 @@ export function LoginForm() {
     const password = formData.get("password") as string
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
+      await signIn(email, password)
+      
+      toast({
+        title: "Welcome back!",
+        description: "You've been signed in successfully.",
       })
-
-      if (result?.error) {
-        setError("Invalid email or password")
-      } else {
-        toast({
-          title: "Welcome back!",
-          description: "You've been signed in successfully.",
-        })
-        
-        // Redirect based on callback URL or default to dashboard
-        const callbackUrl = searchParams?.get("callbackUrl") || "/dashboard"
-        router.push(callbackUrl)
-        router.refresh()
-      }
-    } catch (error) {
-      setError("Something went wrong. Please try again.")
+      
+      // Redirect based on callback URL or default to dashboard
+      const callbackUrl = searchParams?.get("callbackUrl") || "/dashboard"
+      router.push(callbackUrl)
+      router.refresh()
+    } catch (error: any) {
+      setError(error.message || "Invalid email or password")
     } finally {
       setIsLoading(false)
     }
